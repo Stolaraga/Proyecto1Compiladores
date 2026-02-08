@@ -4,10 +4,14 @@
  */
 package CRUnedCompiladresProyecto1.validate;
 
+import org.junit.Ignore;
+
 /**
  *
  * @author Elias
  */
+
+@Ignore("Pendiente Sprint 2")
 public class ModuleValidatorTest {
     
 }
