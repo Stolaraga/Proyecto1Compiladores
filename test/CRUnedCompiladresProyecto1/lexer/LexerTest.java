@@ -144,7 +144,60 @@ public class LexerTest {
         assertEquals(TokenType.UNKNOWN, t.get(4).getType());
         assertTrue(t.get(4).getLexeme().startsWith("\"Hola"));
     }
+    
+    @Test
+        public void tokenizesConcatenationOperatorAmpersand() {
+            Lexer lexer = new Lexer();
+            AnalysisResult r = lexer.analyze(Arrays.asList("Console.WriteLine(texto & \"Hola\")"));
+            List<Token> t = r.getLine(1).getTokens();
 
+            boolean foundAmp = false;
+            for (Token tok : t) {
+                if (tok.getType() == TokenType.OPERATOR && "&".equals(tok.getLexeme())) {
+                    foundAmp = true;
+                    break;
+                }
+            }
+            assertTrue("Debe existir OPERATOR &", foundAmp);
+        }
+
+        @Test
+        public void tokenizesComparisonOperators() {
+            Lexer lexer = new Lexer();
+            AnalysisResult r = lexer.analyze(Arrays.asList("If suma >= 15 Then"));
+            List<Token> t = r.getLine(1).getTokens();
+
+            boolean foundGe = false;
+            for (Token tok : t) {
+                if (tok.getType() == TokenType.OPERATOR && ">=".equals(tok.getLexeme())) {
+                    foundGe = true;
+                    break;
+                }
+            }
+            assertTrue("Debe existir OPERATOR >=", foundGe);
+        }
+        
+        
+        @Test
+        public void tokenizesEqualsInDimAssignment() {
+            Lexer lexer = new Lexer();
+            AnalysisResult r = lexer.analyze(Arrays.asList("Dim x As Integer = 7"));
+            List<Token> t = r.getLine(1).getTokens();
+
+            boolean foundEq = false;
+            for (Token tok : t) {
+                if (tok.getType() == TokenType.OPERATOR && "=".equals(tok.getLexeme())) {
+                    foundEq = true;
+                    break;
+                }
+            }
+            assertTrue("Debe existir OPERATOR '='", foundEq);
+        }
+
+        
+        
+        
+        
 
 
     

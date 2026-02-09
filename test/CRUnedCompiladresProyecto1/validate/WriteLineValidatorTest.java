@@ -58,6 +58,21 @@ public class WriteLineValidatorTest {
 
         assertTrue("Debe existir CWL004: " + errors, hasCode(errors, "CWL004"));
     }
+    
+    @Test
+    public void detectsUnclosedQuoteInsideConcatenation() {
+        Lexer lexer = new Lexer();
+        AnalysisResult ar = lexer.analyze(Arrays.asList(
+                "Console.WriteLine(texto & \"Hola)"
+        ));
+
+        WriteLineValidator v = new WriteLineValidator();
+        List<LexError> errors = v.validate(ar.getLine(1));
+
+        assertTrue("Debe existir CWL005: " + errors, hasCode(errors, "CWL005"));
+        assertTrue("Debe existir CWL003 (falta ')'): " + errors, hasCode(errors, "CWL003"));
+    }
+
 
     @Test
     public void missingClosingParen_isError() {

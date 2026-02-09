@@ -122,6 +122,15 @@ public class Tokenizer {
             }
 
             // 5) OPERATORS 
+            
+             String two = (i + 1 < line.length()) ? ("" + c + line.charAt(i + 1)) : null;
+            if (two != null && isTwoCharOperator(two)) {
+                tokens.add(new Token(TokenType.OPERATOR, two, lineNumber, col, 2));
+                i += 2;
+                continue;
+            }
+
+            // Operadores de 1 caracter (incluye = & > <)
             if (isOperator(c)) {
                 tokens.add(new Token(TokenType.OPERATOR, String.valueOf(c), lineNumber, col, 1));
                 i++;
@@ -149,6 +158,11 @@ public class Tokenizer {
         return ReservedWords.isReserved(lexeme); 
         
     }
+    
+    private boolean isTwoCharOperator(String op) {
+    return ">=".equals(op) || "<=".equals(op) || "<>".equals(op);
+}
+
 
     private boolean isWhitespace(char c) {
         return c == ' ' || c == '\t';
@@ -163,7 +177,8 @@ public class Tokenizer {
     }
 
     private boolean isOperator(char c) {
-        return c == '+' || c == '-' || c == '*' || c == '/' || c == '=';
+        return c == '+' || c == '-' || c == '*' || c == '/' || c == '='
+            || c == '&' || c == '>' || c == '<';
     }
 
     private boolean isPunctuation(char c) {

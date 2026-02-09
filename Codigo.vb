@@ -5,7 +5,7 @@ Imports System.IO
 Module ProyectoVB
     Sub Main()
         'Declaración de variables
-        Dim numero1 As Integer = 7
+        Dim numero1 As Integer  7
         Dim numero2 As Double = 12.5
         Dim texto As String = "Resultado: "
         Dim esMayor As Boolean
