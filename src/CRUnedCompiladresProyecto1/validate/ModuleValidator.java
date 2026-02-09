@@ -31,6 +31,8 @@ public class ModuleValidator {
 
         boolean moduleSeen = false;
         int moduleCount = 0;
+        boolean importsSeen = false;
+
 
         for (LineRecord lr : result.getLines()) {
             List<Token> tokens = lr.getTokens();
@@ -45,12 +47,14 @@ public class ModuleValidator {
             Token first = tokens.get(firstNonWs);
 
             // Imports
+           
             if (isKeyword(first, "Imports")) {
                 if (moduleSeen) {
                     errors.add(err("MOD002", "No se permite 'Imports' después de 'Module'.", first));
                 } else {
                     // Validación mínima: Imports + 1 espacio + algo (no vacío)
                     errors.addAll(validateImportsLine(tokens, firstNonWs));
+                    importsSeen = true; // <-- NUEVO: ya vimos Imports antes de Module
                 }
                 continue;
             }
@@ -58,6 +62,11 @@ public class ModuleValidator {
             // Module
             if (isKeyword(first, "Module")) {
                 moduleCount++;
+                
+                if (!importsSeen) {
+                    errors.add(err("MOD005", "La sentencia 'Module' debe aparecer después de 'Imports'.", first));
+                    }
+
 
                 // Sangría antes de Module
                 if (firstNonWs > 0) {
@@ -116,12 +125,13 @@ public class ModuleValidator {
 
         Token id = tokens.get(i);
 
-        IdentifierValidator idValidator = new IdentifierValidator();
-        errors.addAll(idValidator.validateIdentifier(id));
-
-        if (id.getType() != TokenType.IDENTIFIER) {
-            errors.add(err("MOD013", "Identificador de Module inválido: '" + id.getLexeme() + "'.", id));
-        }
+       
+        if (id.getType() == TokenType.IDENTIFIER) {
+                IdentifierValidator idValidator = new IdentifierValidator();
+                errors.addAll(idValidator.validateIdentifier(id));
+            } else {
+                errors.add(err("MOD013", "Identificador de Module inválido: '" + id.getLexeme() + "'.", id));
+            }
 
 
         // Tokens después del identificador: solo permitimos whitespace (o nada)

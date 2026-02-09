@@ -38,6 +38,10 @@ public class ValidationPipeline {
         // 1) Estructura
         errors.addAll(new ModuleValidator().validate(ar));
         errors.addAll(new EndModuleValidator().validate(ar));
+        errors.addAll(new IfStructureValidator().validate(ar));
+        errors.addAll(new SubMainStructureValidator().validate(ar));
+
+
 
         // 2) Dim (requiere saber si ya se vio Module)
         DimValidator dimValidator = new DimValidator();

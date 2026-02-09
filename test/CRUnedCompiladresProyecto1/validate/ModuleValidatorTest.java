@@ -72,6 +72,23 @@ public class ModuleValidatorTest {
 
         assertTrue("Debe existir MOD012: " + errors, hasCode(errors, "MOD012"));
     }
+    
+    @Test
+        public void moduleMustAppearAfterImports() {
+            Lexer lexer = new Lexer();
+            AnalysisResult ar = lexer.analyze(Arrays.asList(
+                    "Module M1",
+                    "End Module"
+            ));
+
+            List<LexError> errors = new ModuleValidator().validate(ar);
+
+            boolean has = false;
+            for (LexError e : errors) {
+                if ("MOD005".equals(e.getCode())) { has = true; break; }
+            }
+            assertTrue("Debe existir MOD005 cuando Module aparece sin Imports antes", has);
+        }
 
     @Test
     public void missingModule_isError() {

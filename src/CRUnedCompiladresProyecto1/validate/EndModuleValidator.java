@@ -19,94 +19,143 @@ import java.util.List;
  * @author Elias
  */
 public class EndModuleValidator {
-    
-    public List<LexError> validate(AnalysisResult result) {
+
+    public List<LexError> validate(AnalysisResult ar) {
         List<LexError> errors = new ArrayList<>();
 
-        if (result == null || result.getLines().isEmpty()) {
+        if (ar == null || ar.getLines() == null || ar.getLines().isEmpty()) {
             errors.add(new LexError("ENDM000", "El archivo está vacío y no contiene 'End Module'.", 1, 1));
             return errors;
         }
 
-        int lastSignificantLine = findLastSignificantLineNumber(result);
-        boolean moduleSeen = false;
+        int totalLines = ar.getLines().size();
 
         int endModuleCount = 0;
-        Token firstEndToken = null;
-        int firstEndLine = -1;
+        LineRecord lastEndModule = null;
 
-        for (LineRecord lr : result.getLines()) {
+        // Para ENDM003: End Module antes de Module
+        int firstModuleLine = -1;
+
+        for (LineRecord lr : ar.getLines()) {
             List<Token> tokens = lr.getTokens();
+            if (tokens == null || tokens.isEmpty()) continue;
 
-            if (isCommentLine(tokens) || isWhitespaceOnly(tokens)) continue;
-
-            int firstNonWs = firstNonWhitespaceIndex(tokens);
-            if (firstNonWs == -1) continue;
-
-            Token first = tokens.get(firstNonWs);
-
-            if (isKeyword(first, "Module")) {
-                moduleSeen = true;
-                continue;
+            // detectar Module (primer no whitespace)
+            if (firstModuleLine == -1 && isModuleLine(tokens)) {
+                firstModuleLine = lr.getLineNumber();
             }
 
-            if (isKeyword(first, "End")) {
-                // ¿es End Module?
-                if (looksLikeEndModule(tokens, firstNonWs)) {
-                    endModuleCount++;
-                    if (endModuleCount == 1) {
-                        firstEndToken = first;
-                        firstEndLine = lr.getLineNumber();
-                    }
+            // detectar End Module
+            if (isEndModuleCandidate(tokens)) {
+                endModuleCount++;
+                lastEndModule = lr;
 
-                    // Formato exacto: End + 1 espacio + Module y nada más (salvo whitespace final)
-                    errors.addAll(validateEndModuleFormat(tokens, firstNonWs));
+                // Validación exacta de la línea End Module (espacios / extra tokens)
+                errors.addAll(validateEndModuleLine(tokens));
 
-                    // Debe venir después de Module
-                    if (!moduleSeen) {
-                        errors.add(err("ENDM003", "'End Module' aparece antes de 'Module'.", first));
-                    }
-
-                    // Debe ser la última línea significativa
-                    if (lr.getLineNumber() != lastSignificantLine) {
-                        errors.add(err("ENDM002", "'End Module' debe ser la última línea significativa del archivo.", first));
-                    }
+                // ENDM003: si todavía no apareció Module, o Module está después
+                if (firstModuleLine == -1 || lr.getLineNumber() < firstModuleLine) {
+                    errors.add(new LexError(
+                            "ENDM003",
+                            "'End Module' debe aparecer después de 'Module'.",
+                            lr.getLineNumber(),
+                            1
+                    ));
                 }
             }
         }
 
         if (endModuleCount == 0) {
-            errors.add(new LexError("ENDM001", "No se encontró la sentencia 'End Module' en el archivo.", 1, 1));
-        } else if (endModuleCount > 1 && firstEndToken != null) {
-            errors.add(new LexError("ENDM004", "Solo se permite un 'End Module' en el archivo.", firstEndLine, firstEndToken.getColumn()));
+            errors.add(new LexError("ENDM001", "No se encontró la sentencia 'End Module' en el archivo.", totalLines, 1));
+            return errors;
+        }
+
+        if (endModuleCount > 1 && lastEndModule != null) {
+            errors.add(new LexError("ENDM005", "Solo se permite un 'End Module' en el archivo.", lastEndModule.getLineNumber(), 1));
+        }
+
+        // Debe ser literalmente la última línea del archivo (incluye líneas en blanco)
+        if (lastEndModule != null && lastEndModule.getLineNumber() != totalLines) {
+            errors.add(new LexError(
+                    "ENDM002",
+                    "'End Module' debe ser la última línea del archivo (no se permiten líneas posteriores, ni vacías).",
+                    lastEndModule.getLineNumber(),
+                    1
+            ));
         }
 
         return errors;
     }
 
-    // ------------------- helpers -------------------
+    private boolean isModuleLine(List<Token> tokens) {
+        int idx = firstNonWhitespaceIndex(tokens);
+        if (idx == -1) return false;
+        Token first = tokens.get(idx);
+        return first.getType() == TokenType.KEYWORD
+                && first.getLexeme() != null
+                && first.getLexeme().equalsIgnoreCase("Module");
+    }
 
-    private int findLastSignificantLineNumber(AnalysisResult result) {
-        List<LineRecord> lines = result.getLines();
-        for (int i = lines.size() - 1; i >= 0; i--) {
-            List<Token> tokens = lines.get(i).getTokens();
-            if (isCommentLine(tokens)) continue;
-            if (isWhitespaceOnly(tokens)) continue;
-            return lines.get(i).getLineNumber();
+    private boolean isEndModuleCandidate(List<Token> tokens) {
+        List<Token> sig = significantTokens(tokens);
+
+        if (sig.size() < 2) return false;
+        return isKeyword(sig.get(0), "End") && isKeyword(sig.get(1), "Module");
+    }
+
+    private List<LexError> validateEndModuleLine(List<Token> tokens) {
+        List<LexError> errors = new ArrayList<>();
+
+        int idx = firstNonWhitespaceIndex(tokens);
+        if (idx == -1) return errors;
+
+        Token endTok = tokens.get(idx);
+
+        // Esperado: End [WS " "] Module [WS opcional] (y nada más)
+        int i = idx + 1;
+        if (i >= tokens.size()) {
+            errors.add(err("ENDM010", "Sentencia 'End Module' incompleta: falta 'Module'.", endTok));
+            return errors;
         }
-        return 1;
+
+        Token ws = tokens.get(i);
+        if (ws.getType() != TokenType.WHITESPACE) {
+            errors.add(err("ENDM011", "Se esperaba exactamente 1 espacio entre 'End' y 'Module'.", ws));
+            return errors;
+        }
+        if (!" ".equals(ws.getLexeme())) {
+            errors.add(err("ENDM012", "Debe haber exactamente 1 espacio (no tab ni múltiples espacios) entre 'End' y 'Module'.", ws));
+        }
+
+        i++;
+        if (i >= tokens.size()) {
+            errors.add(err("ENDM010", "Sentencia 'End Module' incompleta: falta 'Module'.", endTok));
+            return errors;
+        }
+
+        Token modTok = tokens.get(i);
+        if (!isKeyword(modTok, "Module")) {
+            errors.add(err("ENDM013", "Se esperaba la palabra reservada 'Module' después de 'End'.", modTok));
+        }
+
+        // Después de Module: solo whitespace permitido (ni COMMENT, ni otra instrucción)
+        for (int j = i + 1; j < tokens.size(); j++) {
+            Token t = tokens.get(j);
+            if (t.getType() == TokenType.WHITESPACE) continue;
+            errors.add(err("ENDM014", "No se permite ninguna instrucción adicional en la misma línea de 'End Module'.", t));
+            break;
+        }
+
+        return errors;
     }
 
-    private boolean isCommentLine(List<Token> tokens) {
-        return tokens != null && tokens.size() == 1 && tokens.get(0).getType() == TokenType.COMMENT;
-    }
-
-    private boolean isWhitespaceOnly(List<Token> tokens) {
-        if (tokens == null || tokens.isEmpty()) return true;
+    private List<Token> significantTokens(List<Token> tokens) {
+        List<Token> out = new ArrayList<>();
         for (Token t : tokens) {
-            if (t.getType() != TokenType.WHITESPACE) return false;
+            if (t.getType() == TokenType.WHITESPACE) continue;
+            out.add(t);
         }
-        return true;
+        return out;
     }
 
     private int firstNonWhitespaceIndex(List<Token> tokens) {
@@ -117,70 +166,11 @@ public class EndModuleValidator {
     }
 
     private boolean isKeyword(Token t, String kw) {
-        return t.getType() == TokenType.KEYWORD
-                && t.getLexeme() != null
-                && t.getLexeme().equalsIgnoreCase(kw);
-    }
-
-    /**
-     * Revisa si la línea se parece a End Module (sin validar formato exacto).
-     * Sirve para reconocerlo y luego validar detalles.
-     */
-    private boolean looksLikeEndModule(List<Token> tokens, int endIndex) {
-        int i = endIndex + 1;
-        // Puede haber whitespace, pero la forma exacta se valida en validateEndModuleFormat
-        // Aquí solo verificamos que exista "Module" más adelante
-        while (i < tokens.size() && tokens.get(i).getType() == TokenType.WHITESPACE) i++;
-        if (i >= tokens.size()) return false;
-        Token t = tokens.get(i);
-        return isKeyword(t, "Module");
-    }
-
-    private List<LexError> validateEndModuleFormat(List<Token> tokens, int endIndex) {
-        List<LexError> errors = new ArrayList<>();
-
-        // Esperado: End + WHITESPACE (" ") + Module + (solo whitespace)
-        int i = endIndex + 1;
-        if (i >= tokens.size()) {
-            errors.add(err("ENDM010", "Formato inválido. Se esperaba: End Module.", tokens.get(endIndex)));
-            return errors;
-        }
-
-        Token ws = tokens.get(i);
-        if (ws.getType() != TokenType.WHITESPACE) {
-            errors.add(err("ENDM011", "Se esperaba 1 espacio entre 'End' y 'Module'.", ws));
-            return errors;
-        }
-        if (!" ".equals(ws.getLexeme())) {
-            errors.add(err("ENDM012", "Debe haber exactamente 1 espacio (no tab ni múltiples) entre 'End' y 'Module'.", ws));
-        }
-
-        i++;
-        if (i >= tokens.size()) {
-            errors.add(err("ENDM010", "Formato inválido. Se esperaba: End Module.", tokens.get(endIndex)));
-            return errors;
-        }
-
-        Token mod = tokens.get(i);
-        if (!isKeyword(mod, "Module")) {
-            errors.add(err("ENDM013", "Después de 'End' debe venir 'Module'.", mod));
-            return errors;
-        }
-
-        // no debe haber nada después excepto whitespace
-        for (int j = i + 1; j < tokens.size(); j++) {
-            Token t = tokens.get(j);
-            if (t.getType() == TokenType.WHITESPACE) continue;
-            errors.add(err("ENDM014", "Texto extra no permitido después de 'End Module'.", t));
-            break;
-        }
-
-        return errors;
+        return t.getType() == TokenType.KEYWORD && t.getLexeme() != null && t.getLexeme().equalsIgnoreCase(kw);
     }
 
     private LexError err(String code, String msg, Token at) {
         return new LexError(code, msg, at.getLine(), at.getColumn());
     }
-
-    
 }
+

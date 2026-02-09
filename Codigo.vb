@@ -21,7 +21,7 @@ Module ProyectoVB
             Console.WriteLine(texto & "La suma es exactamente 15")
         Else
             Console.WriteLine(texto & "La suma es menor que 15)
-        End If
+      
 
        'Llamada a función con parámetros
         	
