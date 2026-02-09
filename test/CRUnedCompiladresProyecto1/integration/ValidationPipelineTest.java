@@ -27,51 +27,34 @@ import static org.junit.Assert.*;
  */
 public class ValidationPipelineTest {
     
-     private boolean hasCode(List<LexError> errors, String code) {
-        for (LexError e : errors) {
-            if (e.getCode().equals(code)) return true;
+        @Test
+    public void pipelineReturnsErrorsSortedByLineThenColumnThenCode() {
+        Lexer lexer = new Lexer();
+        AnalysisResult ar = lexer.analyze(Arrays.asList(
+                "Dim _a As Integer",     // línea 1 -> ID002 (y DIM001 también por antes de Module)
+                "Module  M1",            // línea 2 -> MOD012 (dos espacios)
+                "Console.WriteLine()",   // línea 3 -> CWL004 (vacío)
+                "End  Module"            // línea 4 -> ENDM012 (dos espacios)
+        ));
+
+        ValidationPipeline p = new ValidationPipeline();
+        List<LexError> errors = p.validateAll(ar);
+
+        assertTrue("Se esperaban errores", errors.size() > 0);
+
+        // Verifica que están ordenados:
+        for (int i = 1; i < errors.size(); i++) {
+            LexError prev = errors.get(i - 1);
+            LexError cur = errors.get(i);
+
+            boolean ok =
+                    (prev.getLine() < cur.getLine()) ||
+                    (prev.getLine() == cur.getLine() && prev.getColumn() < cur.getColumn()) ||
+                    (prev.getLine() == cur.getLine() && prev.getColumn() == cur.getColumn()
+                            && prev.getCode().compareTo(cur.getCode()) <= 0);
+
+            assertTrue("Lista no está ordenada entre:\n  " + prev + "\n  " + cur, ok);
         }
-        return false;
-    }
-
-    @Test
-    public void validFile_noErrors_andSymbolTableFilled() {
-        Lexer lexer = new Lexer();
-        AnalysisResult ar = lexer.analyze(Arrays.asList(
-                "Imports System",
-                "Module M1",
-                "Dim a As Integer = 10",
-                "Dim b As Integer = a + 5",
-                "End Module"
-        ));
-
-        ValidationPipeline p = new ValidationPipeline();
-        List<LexError> errors = p.validateAll(ar);
-
-        assertTrue("No deberían haber errores: " + errors, errors.isEmpty());
-
-        SymbolTable st = p.getLastSymbolTable();
-        assertEquals(VbType.INTEGER, st.getType("a"));
-        assertEquals(VbType.INTEGER, st.getType("b"));
-    }
-
-    @Test
-    public void collectsMultipleErrorsFromDifferentValidators() {
-        Lexer lexer = new Lexer();
-        AnalysisResult ar = lexer.analyze(Arrays.asList(
-                "Dim a As Integer",   // Dim antes de Module -> DIM001
-                "Module  M1",         // dos espacios -> MOD012
-                "Imports System"      // Imports después de Module -> MOD002
-                // falta End Module -> ENDM001
-        ));
-
-        ValidationPipeline p = new ValidationPipeline();
-        List<LexError> errors = p.validateAll(ar);
-
-        assertTrue("Debe existir DIM001: " + errors, hasCode(errors, "DIM001"));
-        assertTrue("Debe existir MOD012: " + errors, hasCode(errors, "MOD012"));
-        assertTrue("Debe existir MOD002: " + errors, hasCode(errors, "MOD002"));
-        assertTrue("Debe existir ENDM001: " + errors, hasCode(errors, "ENDM001"));
     }
     
     

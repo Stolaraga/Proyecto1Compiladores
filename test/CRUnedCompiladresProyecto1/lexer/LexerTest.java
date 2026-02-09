@@ -95,6 +95,20 @@ public class LexerTest {
         assertEquals(TokenType.COMMENT, t.get(0).getType());
         assertEquals("' esto es un comentario", t.get(0).getLexeme());
     }
+    
+    @Test
+    public void tokenizesInvalidIdentifierStartingWithNumberAsSingleIdentifier() {
+    Lexer lexer = new Lexer();
+    AnalysisResult result = lexer.analyze(Arrays.asList("Dim 43numero1 As Integer = 7"));
+    List<Token> t = result.getLine(1).getTokens();
+
+    assertEquals(TokenType.KEYWORD, t.get(0).getType()); // Dim
+    assertEquals(TokenType.WHITESPACE, t.get(1).getType());
+    assertEquals(TokenType.IDENTIFIER, t.get(2).getType());
+    assertEquals("43numero1", t.get(2).getLexeme());
+    
+    }
+
 
     
     

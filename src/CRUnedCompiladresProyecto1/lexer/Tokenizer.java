@@ -75,14 +75,34 @@ public class Tokenizer {
                 continue;
             }
 
-            // 3) NÚMERO 
+            // 3) NÚMERO (entero o decimal) o "identificador inválido" que inicia con dígito (ej: 43numero1)
             if (Character.isDigit(c)) {
                 int start = i;
+
+                // parte entera
                 while (i < line.length() && Character.isDigit(line.charAt(i))) i++;
+
+                // parte decimal opcional: . seguido de dígitos (ej: 12.5)
+                if (i + 1 < line.length() && line.charAt(i) == '.' && Character.isDigit(line.charAt(i + 1))) {
+                    i++; // consume '.'
+                    while (i < line.length() && Character.isDigit(line.charAt(i))) i++;
+                }
+
+                // Si luego viene letra o '_', NO es un número puro: es un identificador inválido tipo "43numero1"
+                if (i < line.length() && (Character.isLetter(line.charAt(i)) || line.charAt(i) == '_')) {
+                    i++; // consume esa letra/_
+                    while (i < line.length() && isIdentifierPart(line.charAt(i))) i++;
+
+                    String lex = line.substring(start, i);
+                    tokens.add(new Token(TokenType.IDENTIFIER, lex, lineNumber, start + 1, lex.length()));
+                    continue;
+                }
+
                 String lex = line.substring(start, i);
                 tokens.add(new Token(TokenType.NUMBER, lex, lineNumber, start + 1, lex.length()));
                 continue;
             }
+
 
             // 4) IDENTIFIER / KEYWORD 
             //    

@@ -15,6 +15,7 @@ import CRUnedCompiladresProyecto1.symbols.SymbolTable;
 import java.util.ArrayList;
 import java.util.List;
 
+import CRUnedCompiladresProyecto1.util.ErrorUtils;
 
 /**
  *
@@ -55,7 +56,7 @@ public class ValidationPipeline {
             }
         }
 
-        return errors;
+        return ErrorUtils.sortAndDedup(errors);
     }
 
     private boolean isModuleLine(LineRecord lr) {

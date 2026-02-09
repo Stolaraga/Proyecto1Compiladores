@@ -5,8 +5,8 @@ Imports System.IO
 Module ProyectoVB
     Sub Main()
         'Declaración de variables
-        Dim numero1 As Integer = 7
-        Dim numero2 As Double = 12.5
+        Dim 43numero1 As Integer = 7
+        Dim numero2 As Integer = 12.5
         Dim texto As String = "Resultado: "
         Dim esMayor As Boolean
 
@@ -16,11 +16,11 @@ Module ProyectoVB
 
         'Condición anidada
         If esMayor Then
-            Console.WriteLine(texto & "La suma es mayor que 15")
+            Console.WriteLine(texto & "La suma es mayor que 15)
         ElseIf suma = 15 Then
-            Console.WriteLine(texto & "La suma es exactamente 15")
+            Console.WriteLine(texto & "La suma es exactamente 15"
         Else
-            Console.WriteLine(texto & "La suma es menor que 15)
+            Console.WriteLine(texto & "La suma es menor que 15")
         End If
 
        'Llamada a función con parámetros
