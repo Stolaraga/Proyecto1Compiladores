@@ -20,20 +20,15 @@ import static org.junit.Assert.*;
  */
 public class ErrorUtilsTest {
     
-     @Test
-    public void sortAndDedupRemovesExactDuplicates() {
-        LexError a1 = new LexError("X001", "Mensaje", 2, 5);
-        LexError a2 = new LexError("X001", "Mensaje", 2, 5); // duplicado exacto
-        LexError b  = new LexError("X000", "Otro", 1, 1);
+    
+    @Test
+public void sortAndDedupRemovesDuplicatesEvenIfColumnDiffers() {
+    LexError e1 = new LexError("X001", "Mismo", 2, 1);
+    LexError e2 = new LexError("X001", "Mismo", 2, 10); // misma línea, distinto col
 
-        List<LexError> out = ErrorUtils.sortAndDedup(Arrays.asList(a1, a2, b));
+    List<LexError> out = ErrorUtils.sortAndDedup(Arrays.asList(e1, e2));
+    assertEquals(1, out.size());
+}
 
-        // Debe quedar solo 2
-        assertEquals(2, out.size());
-
-        // Y ordenado: primero línea 1, luego línea 2
-        assertEquals(1, out.get(0).getLine());
-        assertEquals(2, out.get(1).getLine());
-    }
     
 }

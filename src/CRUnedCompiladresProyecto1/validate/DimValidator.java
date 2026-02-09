@@ -26,123 +26,155 @@ public class DimValidator {
      * @param moduleSeen si ya apareció "Module" antes (regla del enunciado).
      *                  Si aún no implementas Sprint 2, puedes pasar true para ignorar esa regla por ahora.
      */
+    
     public List<LexError> validate(LineRecord lr, SymbolTable st, boolean moduleSeen) {
-        
-        List<LexError> errors = new ArrayList<>();
-        IdentifierValidator idValidator = new IdentifierValidator();
+    List<LexError> errors = new ArrayList<>();
 
+    List<Token> sig = significantTokens(lr.getTokens());
+    if (sig.isEmpty()) return errors;
 
-        List<Token> sig = significantTokens(lr.getTokens());
-        if (sig.isEmpty()) return errors;
+    // Comentario (solo si inicia con ')
+    if (sig.size() == 1 && sig.get(0).getType() == TokenType.COMMENT) {
+        return errors;
+    }
 
-        // Si la línea es comentario (solo si inicia con ')
-        if (sig.size() == 1 && sig.get(0).getType() == TokenType.COMMENT) {
-            return errors;
-        }
+    Token first = sig.get(0);
+    if (!(first.getType() == TokenType.KEYWORD && eqi(first.getLexeme(), "Dim"))) {
+        return errors; // no es Dim
+    }
 
-        
-        Token first = sig.get(0);
-        if (!(first.getType() == TokenType.KEYWORD && eqi(first.getLexeme(), "Dim"))) {
-            return errors; // no es Dim
-        }
+    if (!moduleSeen) {
+        errors.add(err("DIM001", "La sentencia Dim debe aparecer después de Module.", first));
+    }
 
-        if (!moduleSeen) {
-            errors.add(err("DIM001", "La sentencia Dim debe aparecer después de Module.", first));
-            // no retornamos: igual seguimos para capturar más errores
-        }
+    int i = 1;
 
-        int i = 1;
+    // 1) Identificador
+    if (i >= sig.size()) {
+        errors.add(err("DIM002", "Falta el identificador después de Dim.", first));
+        return errors;
+    }
 
-        // 1) Identificador
-        if (i >= sig.size()) {
-            errors.add(err("DIM002", "Falta el identificador después de Dim.", first));
-            return errors;
-        }
+    Token idTok = sig.get(i++);
+    // Caso típico de cascada: "Dim As Integer" (se fue directo a As)
+    if (idTok.getType() == TokenType.KEYWORD && eqi(idTok.getLexeme(), "As")) {
+        errors.add(err("DIM002", "Falta el identificador después de Dim.", first));
+        return errors; // corte temprano para evitar cascada
+    }
 
-        Token idTok = sig.get(i++);
-        
-        errors.addAll(idValidator.validateIdentifier(idTok));
+    IdentifierValidator idValidator = new IdentifierValidator();
+    List<LexError> idErrors = idValidator.validateIdentifier(idTok);
+    errors.addAll(idErrors);
 
-        if (idTok.getType() != TokenType.IDENTIFIER) {
-            errors.add(err("DIM003", "Identificador inválido después de Dim: '" + idTok.getLexeme() + "'.", idTok));
-            // si no es identificador, no podemos declarar; seguimos para detectar otros errores si se puede
-        }
+    boolean idTokenIsIdentifier = (idTok.getType() == TokenType.IDENTIFIER);
+    boolean idOk = idTokenIsIdentifier && idErrors.isEmpty();
 
-        String varName = (idTok.getType() == TokenType.IDENTIFIER) ? idTok.getLexeme() : null;
+    if (!idTokenIsIdentifier) {
+        errors.add(err("DIM003", "Identificador inválido después de Dim: '" + idTok.getLexeme() + "'.", idTok));
+    }
 
-        // 2) As
-        if (i >= sig.size()) {
+    String varName = idOk ? idTok.getLexeme() : null;
+
+    // 2) As (con resincronización)
+    if (i >= sig.size()) {
+        errors.add(err("DIM004", "Falta 'As' y el tipo. Formato esperado: Dim <id> As <Tipo>.", idTok));
+        return errors;
+    }
+
+    Token asTok = sig.get(i);
+    if (!(asTok.getType() == TokenType.KEYWORD && eqi(asTok.getLexeme(), "As"))) {
+        // resincronizar: buscar el próximo "As"
+        int asIdx = findNextKeywordIndex(sig, i, "As");
+        errors.add(err("DIM005", "Se esperaba 'As' después del identificador en Dim.", asTok));
+
+        if (asIdx == -1) {
+            // no hay As -> no podemos seguir parseando de forma confiable
             errors.add(err("DIM004", "Falta 'As' y el tipo. Formato esperado: Dim <id> As <Tipo>.", idTok));
             return errors;
         }
 
-        Token asTok = sig.get(i++);
-        if (!(asTok.getType() == TokenType.KEYWORD && eqi(asTok.getLexeme(), "As"))) {
-            errors.add(err("DIM005", "Se esperaba 'As' después del identificador en Dim.", asTok));
-            // tratamos de continuar: el siguiente token podría ser el tipo
-        }
+        i = asIdx;
+        asTok = sig.get(i); // ahora sí es As
+    }
+    i++; // consume As
 
-        // 3) Tipo
-        if (i >= sig.size()) {
-            errors.add(err("DIM006", "Falta el tipo después de 'As'.", asTok));
-            return errors;
-        }
-
-        Token typeTok = sig.get(i++);
-        VbType declaredType = VbType.fromLexeme(typeTok.getLexeme());
-        if (declaredType == VbType.UNKNOWN) {
-            errors.add(err("DIM007", "Tipo no permitido o desconocido: '" + typeTok.getLexeme()
-                    + "'. Tipos válidos: Integer, String, Boolean, Byte.", typeTok));
-        }
-
-        // 4) Declaración en tabla de símbolos (si el header está razonablemente bien)
-        boolean headerOk = (varName != null) && (declaredType != VbType.UNKNOWN);
-
-        if (headerOk) {
-            if (st.isDeclared(varName)) {
-                errors.add(err("DIM008", "La variable '" + varName + "' ya fue declarada.", idTok));
-            } else {
-                // Declaramos aunque luego la asignación falle, para evitar cascadas
-                st.declare(varName, declaredType, lr.getLineNumber());
-            }
-        }
-
-        
-        if (i >= sig.size()) {
-            return errors; // Dim sin asignación
-        }
-
-        Token next = sig.get(i++);
-        if (!(next.getType() == TokenType.OPERATOR && "=".equals(next.getLexeme()))) {
-            errors.add(err("DIM009", "Token inesperado después del tipo. Si hay asignación debe ser '='.", next));
-            return errors; // ya no sabemos parsear bien
-        }
-
-        if (i >= sig.size()) {
-            errors.add(err("DIM010", "Falta la expresión después de '='.", next));
-            return errors;
-        }
-
-        List<Token> expr = sig.subList(i, sig.size());
-
-        // Si el tipo del Dim es desconocido, igual intentamos validar forma mínima de expr para dar feedback,
-        
-        if (declaredType == VbType.UNKNOWN) {
-            errors.addAll(validateExprLoosely(expr));
-            return errors;
-        }
-
-        // Validación por tipo declarado
-        if (declaredType.isNumeric()) {
-            errors.addAll(validateNumericExpr(expr, st));
-        } else if (declaredType == VbType.STRING) {
-            errors.addAll(validateStringExpr(expr, st));
-        } else if (declaredType == VbType.BOOLEAN) {
-            errors.addAll(validateBooleanExpr(expr, st));
-        }
-
+    // 3) Tipo
+    if (i >= sig.size()) {
+        errors.add(err("DIM006", "Falta el tipo después de 'As'.", asTok));
         return errors;
     }
+
+    Token typeTok = sig.get(i++);
+    VbType declaredType = VbType.fromLexeme(typeTok.getLexeme());
+    if (declaredType == VbType.UNKNOWN) {
+        errors.add(err("DIM007", "Tipo no permitido o desconocido: '" + typeTok.getLexeme()
+                + "'. Tipos válidos: Integer, String, Boolean, Byte.", typeTok));
+    }
+
+    // 4) Declaración en tabla de símbolos SOLO si el encabezado está perfecto
+    boolean headerOk = (varName != null) && (declaredType != VbType.UNKNOWN);
+
+    if (headerOk) {
+        if (st.isDeclared(varName)) {
+            errors.add(err("DIM008", "La variable '" + varName + "' ya fue declarada.", idTok));
+        } else {
+            st.declare(varName, declaredType, lr.getLineNumber());
+        }
+    }
+
+    // 5) ¿Asignación?
+    if (i >= sig.size()) {
+        return errors; // Dim sin asignación
+    }
+
+    Token next = sig.get(i);
+    if (!(next.getType() == TokenType.OPERATOR && "=".equals(next.getLexeme()))) {
+        // resincronizar: buscar '='
+        int eqIdx = findNextOperatorIndex(sig, i, "=");
+        errors.add(err("DIM009", "Token inesperado después del tipo. Si hay asignación debe ser '='.", next));
+
+        if (eqIdx == -1) {
+            // no hay '=' -> no forzamos más parseos (evita cascada)
+            return errors;
+        }
+
+        i = eqIdx;
+        next = sig.get(i);
+    }
+
+    i++; // consume '='
+
+    if (i >= sig.size()) {
+        errors.add(err("DIM010", "Falta la expresión después de '='.", next));
+        return errors;
+    }
+
+    List<Token> expr = sig.subList(i, sig.size());
+
+    // Si no podemos confiar en el encabezado, no hacemos chequeo fuerte de expresión (evita cascada)
+    if (!headerOk) {
+        errors.addAll(validateExprLoosely(expr));
+        return errors;
+    }
+
+    // Si el tipo es unknown (aunque headerOk lo evita), mantenemos esto por seguridad
+    if (declaredType == VbType.UNKNOWN) {
+        errors.addAll(validateExprLoosely(expr));
+        return errors;
+    }
+
+    // Validación por tipo declarado
+    if (declaredType.isNumeric()) {
+        errors.addAll(validateNumericExpr(expr, st));
+    } else if (declaredType == VbType.STRING) {
+        errors.addAll(validateStringExpr(expr, st));
+    } else if (declaredType == VbType.BOOLEAN) {
+        errors.addAll(validateBooleanExpr(expr, st));
+    }
+
+    return errors;
+}
+
 
     // ---------------- Helpers ----------------
 
@@ -312,6 +344,23 @@ public class DimValidator {
         String x = t.getLexeme();
         return x != null && (x.equalsIgnoreCase("true") || x.equalsIgnoreCase("false"));
     }
+    
+    private int findNextKeywordIndex(List<Token> sig, int start, String keyword) {
+    for (int k = start; k < sig.size(); k++) {
+        Token t = sig.get(k);
+        if (t.getType() == TokenType.KEYWORD && eqi(t.getLexeme(), keyword)) return k;
+    }
+    return -1;
+}
+
+    private int findNextOperatorIndex(List<Token> sig, int start, String op) {
+        for (int k = start; k < sig.size(); k++) {
+            Token t = sig.get(k);
+            if (t.getType() == TokenType.OPERATOR && op.equals(t.getLexeme())) return k;
+        }
+        return -1;
+    }
+
 
     
 }

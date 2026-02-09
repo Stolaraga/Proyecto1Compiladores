@@ -70,8 +70,12 @@ public class Tokenizer {
 
                 // Si no cerró, igual devolvemos el literal hasta el final
                 
+                
                 String lex = line.substring(start, i);
-                tokens.add(new Token(TokenType.STRING_LITERAL, lex, lineNumber, start + 1, lex.length()));
+                TokenType type = closed ? TokenType.STRING_LITERAL : TokenType.UNKNOWN;
+                tokens.add(new Token(type, lex, lineNumber, start + 1, lex.length()));
+
+
                 continue;
             }
 

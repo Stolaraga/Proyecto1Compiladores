@@ -36,6 +36,16 @@ public class ReservedWords {
         s.add("string");
         s.add("boolean");
         s.add("byte");
+        
+        s.add("sub");
+        s.add("if");
+        s.add("then");
+        s.add("elseif");
+        s.add("else");
+        s.add("function");
+        s.add("return");
+        s.add("while");
+
 
         WORDS = Collections.unmodifiableSet(s);
     }

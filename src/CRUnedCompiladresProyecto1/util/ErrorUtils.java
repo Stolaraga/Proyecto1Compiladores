@@ -59,7 +59,7 @@ public final class ErrorUtils {
         Set<String> seen = new HashSet<>();
 
         for (LexError e : sorted) {
-            String key = e.getLine() + "|" + e.getColumn() + "|" + e.getCode() + "|" + e.getMessage();
+            String key = e.getLine() + "|" + e.getCode() + "|" + e.getMessage();
             if (seen.add(key)) {
                 out.add(e);
             }

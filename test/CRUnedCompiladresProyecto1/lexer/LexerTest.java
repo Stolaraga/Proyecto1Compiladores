@@ -108,6 +108,43 @@ public class LexerTest {
     assertEquals("43numero1", t.get(2).getLexeme());
     
     }
+    
+    @Test
+    public void keywordsAreRecognized() {
+        Lexer lexer = new Lexer();
+        AnalysisResult r = lexer.analyze(Arrays.asList("If x Then"));
+        List<Token> t = r.getLine(1).getTokens();
+
+        assertEquals(TokenType.KEYWORD, t.get(0).getType());
+        assertEquals("If", t.get(0).getLexeme());
+
+        assertEquals(TokenType.WHITESPACE, t.get(1).getType());
+
+        assertEquals(TokenType.IDENTIFIER, t.get(2).getType()); // x
+        assertEquals("x", t.get(2).getLexeme());
+
+        assertEquals(TokenType.WHITESPACE, t.get(3).getType());
+
+        assertEquals(TokenType.KEYWORD, t.get(4).getType());
+        assertEquals("Then", t.get(4).getLexeme());
+    }
+    
+    @Test
+    public void tokenizesUnclosedStringAsUnknown() {
+        Lexer lexer = new Lexer();
+        AnalysisResult r = lexer.analyze(Arrays.asList("Console.WriteLine(\"Hola)"));
+        List<Token> t = r.getLine(1).getTokens();
+
+        // Esperamos que el token del string exista y sea UNKNOWN
+        assertEquals(TokenType.KEYWORD, t.get(0).getType());
+        assertEquals(TokenType.PUNCTUATION, t.get(1).getType());
+        assertEquals(TokenType.KEYWORD, t.get(2).getType());
+        assertEquals(TokenType.PUNCTUATION, t.get(3).getType());
+
+        assertEquals(TokenType.UNKNOWN, t.get(4).getType());
+        assertTrue(t.get(4).getLexeme().startsWith("\"Hola"));
+    }
+
 
 
     

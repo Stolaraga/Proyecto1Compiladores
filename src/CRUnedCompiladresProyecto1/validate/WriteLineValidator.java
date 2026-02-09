@@ -77,13 +77,15 @@ public class WriteLineValidator {
 
         // 4) Si el primer token dentro de paréntesis es STRING_LITERAL debe cerrar con "
         Token firstInside = sig.get(openIdx + 1);
-        if (firstInside.getType() == TokenType.STRING_LITERAL) {
+        
+        if (firstInside.getLexeme() != null && firstInside.getLexeme().startsWith("\"")) {
             String lex = firstInside.getLexeme();
-            boolean closes = lex.length() >= 2 && lex.startsWith("\"") && lex.endsWith("\"");
+            boolean closes = lex.length() >= 2 && lex.endsWith("\"");
             if (!closes) {
                 errors.add(err("CWL005", "La cadena de texto en Console.WriteLine debe abrir y cerrar con comillas dobles (\").", firstInside));
             }
         }
+
 
         // 5) No debe haber código extra después del ')'
         if (closeIdx != -1 && closeIdx + 1 < sig.size()) {
