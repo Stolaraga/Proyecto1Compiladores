@@ -115,9 +115,14 @@ public class ModuleValidator {
         }
 
         Token id = tokens.get(i);
+
+        IdentifierValidator idValidator = new IdentifierValidator();
+        errors.addAll(idValidator.validateIdentifier(id));
+
         if (id.getType() != TokenType.IDENTIFIER) {
             errors.add(err("MOD013", "Identificador de Module inválido: '" + id.getLexeme() + "'.", id));
         }
+
 
         // Tokens después del identificador: solo permitimos whitespace (o nada)
         for (int j = i + 1; j < tokens.size(); j++) {

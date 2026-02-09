@@ -27,7 +27,10 @@ public class DimValidator {
      *                  Si aún no implementas Sprint 2, puedes pasar true para ignorar esa regla por ahora.
      */
     public List<LexError> validate(LineRecord lr, SymbolTable st, boolean moduleSeen) {
+        
         List<LexError> errors = new ArrayList<>();
+        IdentifierValidator idValidator = new IdentifierValidator();
+
 
         List<Token> sig = significantTokens(lr.getTokens());
         if (sig.isEmpty()) return errors;
@@ -57,6 +60,9 @@ public class DimValidator {
         }
 
         Token idTok = sig.get(i++);
+        
+        errors.addAll(idValidator.validateIdentifier(idTok));
+
         if (idTok.getType() != TokenType.IDENTIFIER) {
             errors.add(err("DIM003", "Identificador inválido después de Dim: '" + idTok.getLexeme() + "'.", idTok));
             // si no es identificador, no podemos declarar; seguimos para detectar otros errores si se puede
