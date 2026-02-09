@@ -42,6 +42,7 @@ public class ValidationPipeline {
         // 2) Dim (requiere saber si ya se vio Module)
         DimValidator dimValidator = new DimValidator();
         WriteLineValidator writeLineValidator = new WriteLineValidator();
+        CommentValidator commentValidator = new CommentValidator();
 
 
         boolean moduleSeen = false;
@@ -49,6 +50,8 @@ public class ValidationPipeline {
             
             errors.addAll(dimValidator.validate(lr, lastSymbolTable, moduleSeen));
             errors.addAll(writeLineValidator.validate(lr));
+            errors.addAll(commentValidator.validate(lr));
+
 
             
             if (!moduleSeen && isModuleLine(lr)) {

@@ -45,6 +45,14 @@ public class Tokenizer {
                 tokens.add(new Token(TokenType.WHITESPACE, lex, lineNumber, start + 1, lex.length()));
                 continue;
             }
+            
+            // COMMENT: si aparece ' en cualquier punto, lo restante es comentario (VB)
+            // (en este proyecto, luego lo validamos: solo es "válido" si está en col 1)
+            if (c == '\'') {
+                String lex = line.substring(i);
+                tokens.add(new Token(TokenType.COMMENT, lex, lineNumber, col));
+                break; // ignora el resto de la línea
+            }
 
             // 2) STRING_LITERAL: " No soy perezoso; estoy en modo ahorro de energía "
             if (c == '"') {

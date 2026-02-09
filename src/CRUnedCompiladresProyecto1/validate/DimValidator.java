@@ -181,8 +181,10 @@ public class DimValidator {
     private List<Token> significantTokens(List<Token> tokens) {
         List<Token> out = new ArrayList<>();
         for (Token t : tokens) {
-            if (t.getType() == TokenType.WHITESPACE) continue;
-            out.add(t);
+           if (t.getType() == TokenType.COMMENT) break;
+           if (t.getType() == TokenType.WHITESPACE) continue;
+           out.add(t);
+
         }
         return out;
     }
