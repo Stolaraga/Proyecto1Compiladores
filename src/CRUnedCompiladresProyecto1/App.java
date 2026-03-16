@@ -23,7 +23,7 @@ import java.util.List;
  */
 public class App {
 
-    public static void main(String[] args) {
+    public static void main(String[] args) { // args es el arreglo en posicion 0 java -jar AnalizadorLexicoVB.jar prueba.vb
 
         PathResolver resolver = new PathResolver();
         SourceReader reader = new SourceReader();
