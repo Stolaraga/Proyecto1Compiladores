@@ -40,6 +40,9 @@ public class ValidationPipeline {
         errors.addAll(new EndModuleValidator().validate(ar));
         errors.addAll(new IfStructureValidator().validate(ar));
         errors.addAll(new SubMainStructureValidator().validate(ar));
+        
+        WhileValidator whileValidator = new WhileValidator();
+        errors.addAll(whileValidator.validateStructure(ar));
 
 
 
@@ -55,6 +58,7 @@ public class ValidationPipeline {
             errors.addAll(dimValidator.validate(lr, lastSymbolTable, moduleSeen));
             errors.addAll(writeLineValidator.validate(lr));
             errors.addAll(commentValidator.validate(lr));
+            errors.addAll(whileValidator.validate(lr, lastSymbolTable));
 
 
             

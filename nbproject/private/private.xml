@@ -3,20 +3,7 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/E:/Documentos/Documentos/Area%20de%20Trabajo%20Uned/2026/primercuatri/Compiladores/PrimerProyecto/Proyecto1Compiladores/src/CRUnedCompiladresProyecto1/App.java</file>
-            <file>file:/E:/Documentos/Documentos/Area%20de%20Trabajo%20Uned/2026/primercuatri/Compiladores/PrimerProyecto/Proyecto1Compiladores/src/CRUnedCompiladresProyecto1/util/Preconditions.java</file>
-            <file>file:/E:/Documentos/Documentos/Area%20de%20Trabajo%20Uned/2026/primercuatri/Compiladores/PrimerProyecto/Proyecto1Compiladores/src/CRUnedCompiladresProyecto1/util/Strings.java</file>
-            <file>file:/E:/Documentos/Documentos/Area%20de%20Trabajo%20Uned/2026/primercuatri/Compiladores/PrimerProyecto/Proyecto1Compiladores/src/CRUnedCompiladresProyecto1/validate/CommentValidator.java</file>
-            <file>file:/E:/Documentos/Documentos/Area%20de%20Trabajo%20Uned/2026/primercuatri/Compiladores/PrimerProyecto/Proyecto1Compiladores/src/CRUnedCompiladresProyecto1/validate/DimValidator.java</file>
-            <file>file:/E:/Documentos/Documentos/Area%20de%20Trabajo%20Uned/2026/primercuatri/Compiladores/PrimerProyecto/Proyecto1Compiladores/src/CRUnedCompiladresProyecto1/vb/Patterns.java</file>
-            <file>file:/E:/Documentos/Documentos/Area%20de%20Trabajo%20Uned/2026/primercuatri/Compiladores/PrimerProyecto/Proyecto1Compiladores/src/CRUnedCompiladresProyecto1/vb/ReservedWords.java</file>
-            <file>file:/E:/Documentos/Documentos/Area%20de%20Trabajo%20Uned/2026/primercuatri/Compiladores/PrimerProyecto/Proyecto1Compiladores/src/CRUnedCompiladresProyecto1/validate/WriteLineValidator.java</file>
-            <file>file:/E:/Documentos/Documentos/Area%20de%20Trabajo%20Uned/2026/primercuatri/Compiladores/PrimerProyecto/Proyecto1Compiladores/src/CRUnedCompiladresProyecto1/validate/Validator.java</file>
-            <file>file:/E:/Documentos/Documentos/Area%20de%20Trabajo%20Uned/2026/primercuatri/Compiladores/PrimerProyecto/Proyecto1Compiladores/src/CRUnedCompiladresProyecto1/validate/ValidationPipeline.java</file>
-            <file>file:/E:/Documentos/Documentos/Area%20de%20Trabajo%20Uned/2026/primercuatri/Compiladores/PrimerProyecto/Proyecto1Compiladores/src/CRUnedCompiladresProyecto1/validate/SubMainStructureValidator.java</file>
-            <file>file:/E:/Documentos/Documentos/Area%20de%20Trabajo%20Uned/2026/primercuatri/Compiladores/PrimerProyecto/Proyecto1Compiladores/src/CRUnedCompiladresProyecto1/validate/ModuleValidator.java</file>
-            <file>file:/E:/Documentos/Documentos/Area%20de%20Trabajo%20Uned/2026/primercuatri/Compiladores/PrimerProyecto/Proyecto1Compiladores/src/CRUnedCompiladresProyecto1/io/SourceReader.java</file>
-            <file>file:/E:/Documentos/Documentos/Area%20de%20Trabajo%20Uned/2026/primercuatri/Compiladores/PrimerProyecto/Proyecto1Compiladores/src/CRUnedCompiladresProyecto1/model/TokenType.java</file>
+            <file>file:/E:/Documentos/Documentos/Area%20de%20Trabajo%20Uned/2026/primercuatri/Compiladores/Proyecto2/Proyecto2/Proyecto2Compiladores/src/CRUnedCompiladresProyecto1/validate/WhileValidator.java</file>
         </group>
     </open-files>
 </project-private>
