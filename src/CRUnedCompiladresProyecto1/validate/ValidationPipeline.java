@@ -43,6 +43,11 @@ public class ValidationPipeline {
         
         WhileValidator whileValidator = new WhileValidator();
         errors.addAll(whileValidator.validateStructure(ar));
+        
+        ForValidator forValidator = new ForValidator();         //Esto se agrego para el for recordad
+        errors.addAll(forValidator.validateStructure(ar));      //Aquí inicia lo nuevo para el for
+        
+        
 
 
 
@@ -59,6 +64,7 @@ public class ValidationPipeline {
             errors.addAll(writeLineValidator.validate(lr));
             errors.addAll(commentValidator.validate(lr));
             errors.addAll(whileValidator.validate(lr, lastSymbolTable));
+            errors.addAll(forValidator.validate(lr));
 
 
             
