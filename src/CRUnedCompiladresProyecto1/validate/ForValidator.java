@@ -13,6 +13,7 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
+import CRUnedCompiladresProyecto1.util.TokenUtils;
 
 /**
  *
@@ -77,7 +78,7 @@ public class ForValidator {
             ));
         }
 
-        if (start.getType() != TokenType.NUMBER) {
+        if (!TokenUtils.isIntegerLiteral(start)) {
             errors.add(new LexError(
                 "FOR003",
                 "El límite inicial del For debe ser un número entero.",
@@ -86,7 +87,7 @@ public class ForValidator {
             ));
         }
 
-        if (end.getType() != TokenType.NUMBER) {
+        if (!TokenUtils.isIntegerLiteral(end)) {
             errors.add(new LexError(
                 "FOR004",
                 "El límite final del For debe ser un número entero.",

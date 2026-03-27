@@ -15,6 +15,7 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
+import CRUnedCompiladresProyecto1.util.TokenUtils;
 
 /**
  *
@@ -93,7 +94,7 @@ public class WhileValidator {
             ));
         }
 
-        if (right.getType() != TokenType.NUMBER) {
+        if (!TokenUtils.isIntegerLiteral(right)) {
             errors.add(new LexError(
                 "WHI007",
                 "El lado derecho de la condición While debe ser un entero.",
