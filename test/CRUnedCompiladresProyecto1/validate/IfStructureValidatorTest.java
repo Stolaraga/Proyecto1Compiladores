@@ -9,49 +9,117 @@ import CRUnedCompiladresProyecto1.model.AnalysisResult;
 import CRUnedCompiladresProyecto1.model.LexError;
 import java.util.Arrays;
 import java.util.List;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import org.junit.Test;
+
+
+
 
 /**
  *
  * @author Elias
  */
+
 public class IfStructureValidatorTest {
-    
+
+    @Test
+    public void acceptsValidIfWithElse() {
+        Lexer lexer = new Lexer();
+        AnalysisResult ar = lexer.analyze(Arrays.asList(
+            "If x Then",
+            "Console.WriteLine(\"Hola\")",
+            "Else",
+            "Console.WriteLine(\"Adios\")",
+            "End If"
+        ));
+
+        List errors = new IfStructureValidator().validate(ar);
+
+        assertFalse(hasCode(errors, "IF001"));
+        assertFalse(hasCode(errors, "IF002"));
+        assertFalse(hasCode(errors, "IF004"));
+        assertFalse(hasCode(errors, "IF020"));
+    }
+
+    @Test
+    public void ifWithoutThenRaisesIF002() {
+        Lexer lexer = new Lexer();
+        AnalysisResult ar = lexer.analyze(Arrays.asList(
+            "If x",
+            "Console.WriteLine(\"Hola\")",
+            "End If"
+        ));
+
+        List errors = new IfStructureValidator().validate(ar);
+
+        assertTrue(hasCode(errors, "IF002"));
+    }
+
     @Test
     public void ifWithoutEndIfRaisesIF001() {
         Lexer lexer = new Lexer();
         AnalysisResult ar = lexer.analyze(Arrays.asList(
-                "If x Then",
-                "Console.WriteLine(\"Hola\")"
+            "If x Then",
+            "Console.WriteLine(\"Hola\")"
         ));
 
-        List<LexError> errors = new IfStructureValidator().validate(ar);
+        List errors = new IfStructureValidator().validate(ar);
 
         assertTrue(hasCode(errors, "IF001"));
+    }
+
+    @Test
+    public void emptyThenBlockRaisesIF004() {
+        Lexer lexer = new Lexer();
+        AnalysisResult ar = lexer.analyze(Arrays.asList(
+            "If x Then",
+            "Else",
+            "Console.WriteLine(\"Hola\")",
+            "End If"
+        ));
+
+        List errors = new IfStructureValidator().validate(ar);
+
+        assertTrue(hasCode(errors, "IF004"));
+    }
+
+    @Test
+    public void emptyElseBlockRaisesIF004() {
+        Lexer lexer = new Lexer();
+        AnalysisResult ar = lexer.analyze(Arrays.asList(
+            "If x Then",
+            "Console.WriteLine(\"Hola\")",
+            "Else",
+            "End If"
+        ));
+
+        List errors = new IfStructureValidator().validate(ar);
+
+        assertTrue(hasCode(errors, "IF004"));
     }
 
     @Test
     public void endIfWithoutIfRaisesIF020() {
         Lexer lexer = new Lexer();
         AnalysisResult ar = lexer.analyze(Arrays.asList(
-                "End If"
+            "End If"
         ));
 
-        List<LexError> errors = new IfStructureValidator().validate(ar);
+        List errors = new IfStructureValidator().validate(ar);
 
         assertTrue(hasCode(errors, "IF020"));
-
-
-
     }
-    
-    private boolean hasCode(List<LexError> errors, String code) {
-    for (LexError e : errors) {
-        if (code.equals(e.getCode())) return true;
+
+    private boolean hasCode(List errors, String code) {
+        for (Object obj : errors) {
+            LexError e = (LexError) obj;
+            if (code.equals(e.getCode())) return true;
+        }
+        return false;
     }
-    return false;
 }
 
 
-}
+
+

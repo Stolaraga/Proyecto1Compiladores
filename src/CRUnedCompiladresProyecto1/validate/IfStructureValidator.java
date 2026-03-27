@@ -9,45 +9,54 @@ import CRUnedCompiladresProyecto1.model.LexError;
 import CRUnedCompiladresProyecto1.model.LineRecord;
 import CRUnedCompiladresProyecto1.model.Token;
 import CRUnedCompiladresProyecto1.model.TokenType;
-
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
-
 
 /**
  *
  * @author Elias
  */
 public class IfStructureValidator {
-    
-       // Stack para IFs abiertos
+
     private static class IfFrame {
         final int line;
         boolean elseSeen = false;
+        boolean currentBranchHasCode = false;
 
-        IfFrame(int line) { this.line = line; }
+        IfFrame(int line) {
+            this.line = line;
+        }
     }
 
-    public List<LexError> validate(AnalysisResult ar) {
-        List<LexError> errors = new ArrayList<>();
+    public List validate(AnalysisResult ar) {
+        List errors = new ArrayList<>();
         if (ar == null || ar.getLines() == null) return errors;
 
-        Deque<IfFrame> stack = new ArrayDeque<>();
+        Deque stack = new ArrayDeque<>();
 
         for (LineRecord lr : ar.getLines()) {
-            List<Token> sig = significantTokensStopAtComment(lr.getTokens());
+            List sig = significantTokensStopAtComment(lr.getTokens());
             if (sig.isEmpty()) continue;
 
-            Token first = sig.get(0);
+            Token first = (Token) sig.get(0);
 
             // IF ... THEN
             if (isKeyword(first, "If")) {
-                // Debe contener Then en la misma línea
-                if (!containsKeyword(sig, "Then")) {
-                    errors.add(new LexError("IF002", "La sentencia If debe contener 'Then' en la misma línea.", first.getLine(), first.getColumn()));
+                if (!stack.isEmpty()) {
+                    ((IfFrame) stack.peek()).currentBranchHasCode = true;
                 }
+
+                if (!containsKeyword(sig, "Then")) {
+                    errors.add(new LexError(
+                        "IF002",
+                        "La sentencia If debe contener 'Then' en la misma línea.",
+                        first.getLine(),
+                        first.getColumn()
+                    ));
+                }
+
                 stack.push(new IfFrame(first.getLine()));
                 continue;
             }
@@ -55,13 +64,42 @@ public class IfStructureValidator {
             // ELSEIF
             if (isKeyword(first, "ElseIf")) {
                 if (stack.isEmpty()) {
-                    errors.add(new LexError("IF010", "No se permite 'ElseIf' sin un 'If' previo.", first.getLine(), first.getColumn()));
-                } else if (stack.peek().elseSeen) {
-                    errors.add(new LexError("IF011", "'ElseIf' no puede aparecer después de 'Else' en el mismo If.", first.getLine(), first.getColumn()));
+                    errors.add(new LexError(
+                        "IF010",
+                        "No se permite 'ElseIf' sin un 'If' previo.",
+                        first.getLine(),
+                        first.getColumn()
+                    ));
                 } else {
-                    // Debe contener Then
-                    if (!containsKeyword(sig, "Then")) {
-                        errors.add(new LexError("IF003", "La sentencia ElseIf debe contener 'Then' en la misma línea.", first.getLine(), first.getColumn()));
+                    IfFrame frame = (IfFrame) stack.peek();
+
+                    if (frame.elseSeen) {
+                        errors.add(new LexError(
+                            "IF011",
+                            "'ElseIf' no puede aparecer después de 'Else' en el mismo If.",
+                            first.getLine(),
+                            first.getColumn()
+                        ));
+                    } else {
+                        if (!frame.currentBranchHasCode) {
+                            errors.add(new LexError(
+                                "IF004",
+                                "Cada bloque Then, ElseIf o Else debe tener al menos una línea de código.",
+                                first.getLine(),
+                                first.getColumn()
+                            ));
+                        }
+
+                        if (!containsKeyword(sig, "Then")) {
+                            errors.add(new LexError(
+                                "IF003",
+                                "La sentencia ElseIf debe contener 'Then' en la misma línea.",
+                                first.getLine(),
+                                first.getColumn()
+                            ));
+                        }
+
+                        frame.currentBranchHasCode = false;
                     }
                 }
                 continue;
@@ -70,55 +108,107 @@ public class IfStructureValidator {
             // ELSE
             if (isKeyword(first, "Else")) {
                 if (stack.isEmpty()) {
-                    errors.add(new LexError("IF012", "No se permite 'Else' sin un 'If' previo.", first.getLine(), first.getColumn()));
-                } else if (stack.peek().elseSeen) {
-                    errors.add(new LexError("IF013", "Solo se permite un 'Else' por cada If.", first.getLine(), first.getColumn()));
+                    errors.add(new LexError(
+                        "IF012",
+                        "No se permite 'Else' sin un 'If' previo.",
+                        first.getLine(),
+                        first.getColumn()
+                    ));
                 } else {
-                    stack.peek().elseSeen = true;
+                    IfFrame frame = (IfFrame) stack.peek();
+
+                    if (frame.elseSeen) {
+                        errors.add(new LexError(
+                            "IF013",
+                            "Solo se permite un 'Else' por cada If.",
+                            first.getLine(),
+                            first.getColumn()
+                        ));
+                    } else {
+                        if (!frame.currentBranchHasCode) {
+                            errors.add(new LexError(
+                                "IF004",
+                                "Cada bloque Then, ElseIf o Else debe tener al menos una línea de código.",
+                                first.getLine(),
+                                first.getColumn()
+                            ));
+                        }
+
+                        frame.elseSeen = true;
+                        frame.currentBranchHasCode = false;
+                    }
                 }
                 continue;
             }
 
-            // END IF (dos keywords: End + If)
-            if (isKeyword(first, "End") && sig.size() >= 2 && isKeyword(sig.get(1), "If")) {
+            // END IF
+            if (isKeyword(first, "End") && sig.size() >= 2 && isKeyword((Token) sig.get(1), "If")) {
                 if (stack.isEmpty()) {
-                    errors.add(new LexError("IF020", "Se encontró 'End If' sin un 'If' abierto.", first.getLine(), first.getColumn()));
+                    errors.add(new LexError(
+                        "IF020",
+                        "Se encontró 'End If' sin un 'If' abierto.",
+                        first.getLine(),
+                        first.getColumn()
+                    ));
                 } else {
-                    stack.pop();
+                    IfFrame frame = (IfFrame) stack.pop();
+
+                    if (!frame.currentBranchHasCode) {
+                        errors.add(new LexError(
+                            "IF004",
+                            "Cada bloque Then, ElseIf o Else debe tener al menos una línea de código.",
+                            first.getLine(),
+                            first.getColumn()
+                        ));
+                    }
                 }
+                continue;
+            }
+
+            // Cualquier otra línea significativa cuenta como contenido del bloque actual
+            if (!stack.isEmpty()) {
+                ((IfFrame) stack.peek()).currentBranchHasCode = true;
             }
         }
 
-        // Ifs no cerrados
         while (!stack.isEmpty()) {
-            IfFrame f = stack.pop();
-            errors.add(new LexError("IF001", "Falta 'End If' para el 'If' iniciado.", f.line, 1));
+            IfFrame f = (IfFrame) stack.pop();
+            errors.add(new LexError(
+                "IF001",
+                "Falta 'End If' para el 'If' iniciado.",
+                f.line,
+                1
+            ));
         }
 
         return errors;
     }
 
-    private List<Token> significantTokensStopAtComment(List<Token> tokens) {
-        List<Token> out = new ArrayList<>();
+    private List significantTokensStopAtComment(List tokens) {
+        List out = new ArrayList<>();
         if (tokens == null) return out;
-        for (Token t : tokens) {
+
+        for (Object obj : tokens) {
+            Token t = (Token) obj;
             if (t.getType() == TokenType.COMMENT) break;
             if (t.getType() == TokenType.WHITESPACE) continue;
             out.add(t);
         }
+
         return out;
     }
 
     private boolean isKeyword(Token t, String kw) {
-        return t.getType() == TokenType.KEYWORD && t.getLexeme() != null && t.getLexeme().equalsIgnoreCase(kw);
+        return t.getType() == TokenType.KEYWORD
+            && t.getLexeme() != null
+            && t.getLexeme().equalsIgnoreCase(kw);
     }
 
-    private boolean containsKeyword(List<Token> sig, String kw) {
-        for (Token t : sig) {
+    private boolean containsKeyword(List sig, String kw) {
+        for (Object obj : sig) {
+            Token t = (Token) obj;
             if (isKeyword(t, kw)) return true;
         }
         return false;
     }
-    
-    
 }
