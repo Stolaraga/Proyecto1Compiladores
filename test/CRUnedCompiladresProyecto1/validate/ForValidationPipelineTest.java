@@ -165,4 +165,40 @@ public class ForValidationPipelineTest {
         return false;
     }
     
+    @Test
+public void reportsDecimalStartLimit() {
+    Lexer lexer = new Lexer();
+    AnalysisResult ar = lexer.analyze(Arrays.asList(
+        "Module Program",
+        "Sub Main()",
+        "For i = 1.5 To 5",
+        "Console.WriteLine(\"Hola\")",
+        "Next",
+        "End Sub",
+        "End Module"
+    ));
+
+    List errors = new ValidationPipeline().validateAll(ar);
+
+    assertTrue("Debe reportar FOR003 cuando el límite inicial no es un entero.", hasCode(errors, "FOR003"));
+}
+
+@Test
+public void reportsDecimalEndLimit() {
+    Lexer lexer = new Lexer();
+    AnalysisResult ar = lexer.analyze(Arrays.asList(
+        "Module Program",
+        "Sub Main()",
+        "For i = 1 To 5.2",
+        "Console.WriteLine(\"construir mas pilones\")",
+        "Next",
+        "End Sub",
+        "End Module"
+    ));
+
+    List errors = new ValidationPipeline().validateAll(ar);
+
+    assertTrue("Debe reportar FOR004 cuando el límite final no es un entero.", hasCode(errors, "FOR004"));
+}
+    
 }

@@ -131,7 +131,26 @@ public class WhileValidationPipelineTest {
         assertTrue("Debe reportar WHI020 cuando aparece End While sin While.",
                 hasCode(errors, "WHI020"));
     }
+    
+    
+@Test
+public void reportsDecimalRightSideInWhile() {
+    Lexer lexer = new Lexer();
+    AnalysisResult ar = lexer.analyze(Arrays.asList(
+        "Module Program",
+        "Sub Main()",
+        "Dim x As Integer = 1",
+        "While x < 3.5",
+        "Console.WriteLine(\"The cake is a lie\")",
+        "End While",
+        "End Sub",
+        "End Module"
+    ));
 
+    List errors = new ValidationPipeline().validateAll(ar);
+
+    assertTrue("Debe reportar WHI007 cuando el lado derecho del While no es un entero.", hasCode(errors, "WHI007"));
+}
     
     
 }

@@ -20,6 +20,8 @@ import java.util.List;
  */
 public class IfStructureValidator {
 
+
+
     private static class IfFrame {
         final int line;
         boolean elseSeen = false;
@@ -48,14 +50,23 @@ public class IfStructureValidator {
                     ((IfFrame) stack.peek()).currentBranchHasCode = true;
                 }
 
-                if (!containsKeyword(sig, "Then")) {
+                int thenIndex = indexOfKeyword(sig, "Then");
+                if (thenIndex == -1) {
                     errors.add(new LexError(
                         "IF002",
                         "La sentencia If debe contener 'Then' en la misma línea.",
                         first.getLine(),
                         first.getColumn()
                     ));
+                } else if (thenIndex <= 1) {
+                    errors.add(new LexError(
+                        "IF002",
+                        "La sentencia If debe tener una condición antes de 'Then'.",
+                        first.getLine(),
+                        first.getColumn()
+                    ));
                 }
+
 
                 stack.push(new IfFrame(first.getLine()));
                 continue;
@@ -90,10 +101,18 @@ public class IfStructureValidator {
                             ));
                         }
 
-                        if (!containsKeyword(sig, "Then")) {
+                        int thenIndex = indexOfKeyword(sig, "Then");
+                        if (thenIndex == -1) {
                             errors.add(new LexError(
                                 "IF003",
                                 "La sentencia ElseIf debe contener 'Then' en la misma línea.",
+                                first.getLine(),
+                                first.getColumn()
+                            ));
+                        } else if (thenIndex <= 1) {
+                            errors.add(new LexError(
+                                "IF003",
+                                "La sentencia ElseIf debe tener una condición antes de 'Then'.",
                                 first.getLine(),
                                 first.getColumn()
                             ));
@@ -211,4 +230,12 @@ public class IfStructureValidator {
         }
         return false;
     }
+    
+    private int indexOfKeyword(List sig, String kw) {
+    for (int i = 0; i < sig.size(); i++) {
+        Token t = (Token) sig.get(i);
+        if (isKeyword(t, kw)) return i;
+    }
+    return -1;
+}
 }

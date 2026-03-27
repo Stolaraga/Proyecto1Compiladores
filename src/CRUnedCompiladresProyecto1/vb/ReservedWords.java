@@ -49,6 +49,10 @@ public class ReservedWords {
         s.add("and");
         s.add("or");
         s.add("not");
+        
+        s.add("for");
+        s.add("to");
+        s.add("next");
 
 
         WORDS = Collections.unmodifiableSet(s);

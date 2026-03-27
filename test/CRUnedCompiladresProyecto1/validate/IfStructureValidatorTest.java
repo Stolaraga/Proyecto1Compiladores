@@ -110,6 +110,20 @@ public class IfStructureValidatorTest {
 
         assertTrue(hasCode(errors, "IF020"));
     }
+    
+    @Test
+    public void ifWithoutConditionRaisesIF002() {
+        Lexer lexer = new Lexer();
+        AnalysisResult ar = lexer.analyze(Arrays.asList(
+            "If Then",
+            "Console.WriteLine(\"Hola\")",
+            "End If"
+        ));
+
+        List errors = new IfStructureValidator().validate(ar);
+
+        assertTrue(hasCode(errors, "IF002"));
+    }
 
     private boolean hasCode(List errors, String code) {
         for (Object obj : errors) {
