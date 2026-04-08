@@ -5,16 +5,10 @@
         <group>
             <file>file:/E:/Documentos/Documentos/Area%20de%20Trabajo%20Uned/2026/primercuatri/Compiladores/Proyecto2/Proyecto2/Proyecto2Compiladores/src/CRUnedCompiladresProyecto1/validate/WhileValidator.java</file>
             <file>file:/E:/Documentos/Documentos/Area%20de%20Trabajo%20Uned/2026/primercuatri/Compiladores/Proyecto2/Proyecto2/Proyecto2Compiladores/src/CRUnedCompiladresProyecto1/validate/ValidationPipeline.java</file>
-            <file>file:/E:/Documentos/Documentos/Area%20de%20Trabajo%20Uned/2026/primercuatri/Compiladores/Proyecto2/Proyecto2/Proyecto2Compiladores/src/CRUnedCompiladresProyecto1/validate/ForValidator.java</file>
-            <file>file:/E:/Documentos/Documentos/Area%20de%20Trabajo%20Uned/2026/primercuatri/Compiladores/Proyecto2/Proyecto2/Proyecto2Compiladores/test/CRUnedCompiladresProyecto1/validate/ForValidationPipelineTest.java</file>
-            <file>file:/E:/Documentos/Documentos/Area%20de%20Trabajo%20Uned/2026/primercuatri/Compiladores/Proyecto2/Proyecto2/Proyecto2Compiladores/src/CRUnedCompiladresProyecto1/validate/IfStructureValidator.java</file>
-            <file>file:/E:/Documentos/Documentos/Area%20de%20Trabajo%20Uned/2026/primercuatri/Compiladores/Proyecto2/Proyecto2/Proyecto2Compiladores/test/CRUnedCompiladresProyecto1/validate/IfStructureValidatorTest.java</file>
-            <file>file:/E:/Documentos/Documentos/Area%20de%20Trabajo%20Uned/2026/primercuatri/Compiladores/Proyecto2/Proyecto2/Proyecto2Compiladores/src/CRUnedCompiladresProyecto1/lexer/Tokenizer.java</file>
-            <file>file:/E:/Documentos/Documentos/Area%20de%20Trabajo%20Uned/2026/primercuatri/Compiladores/Proyecto2/Proyecto2/Proyecto2Compiladores/src/CRUnedCompiladresProyecto1/lexer/Lexer.java</file>
-            <file>file:/E:/Documentos/Documentos/Area%20de%20Trabajo%20Uned/2026/primercuatri/Compiladores/Proyecto2/Proyecto2/Proyecto2Compiladores/src/CRUnedCompiladresProyecto1/lexer/LexerConfig.java</file>
-            <file>file:/E:/Documentos/Documentos/Area%20de%20Trabajo%20Uned/2026/primercuatri/Compiladores/Proyecto2/Proyecto2/Proyecto2Compiladores/src/CRUnedCompiladresProyecto1/util/TokenUtils.java</file>
             <file>file:/E:/Documentos/Documentos/Area%20de%20Trabajo%20Uned/2026/primercuatri/Compiladores/Proyecto2/Proyecto2/Proyecto2Compiladores/test/CRUnedCompiladresProyecto1/validate/WhileValidationPipelineTest.java</file>
-            <file>file:/E:/Documentos/Documentos/Area%20de%20Trabajo%20Uned/2026/primercuatri/Compiladores/Proyecto2/Proyecto2/Proyecto2Compiladores/src/CRUnedCompiladresProyecto1/vb/ReservedWords.java</file>
+            <file>file:/E:/Documentos/Documentos/Area%20de%20Trabajo%20Uned/2026/primercuatri/Compiladores/Proyecto2/Proyecto2/Proyecto2Compiladores/src/CRUnedCompiladresProyecto1/config/CliArgs.java</file>
+            <file>file:/E:/Documentos/Documentos/Area%20de%20Trabajo%20Uned/2026/primercuatri/Compiladores/Proyecto2/Proyecto2/Proyecto2Compiladores/src/CRUnedCompiladresProyecto1/App.java</file>
+            <file>file:/E:/Documentos/Documentos/Area%20de%20Trabajo%20Uned/2026/primercuatri/Compiladores/Proyecto2/Proyecto2/Proyecto2Compiladores/src/CRUnedCompiladresProyecto1/io/PathResolver.java</file>
         </group>
     </open-files>
 </project-private>
